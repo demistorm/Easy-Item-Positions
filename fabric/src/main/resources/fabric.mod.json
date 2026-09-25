@@ -1,0 +1,43 @@
+{
+	"schemaVersion": 1,
+	"id": "mcpositioneditor",
+	"version": "${version}",
+	"name": "Easy Item Positions",
+	"description": "Live item position editor for flatscreen and VR",
+	"authors": [
+		"Halfstorm"
+	],
+	"contact": {
+		"homepage": "https://github.com/demistorm",
+		"sources": "https://github.com/demistorm"
+	},
+	"license": "GPL-3.0",
+	"environment": "client",
+	"entrypoints": {
+		"main": [
+			"win.demistorm.mcpositioneditor.fabric.MCPositionEditorFabric"
+		],
+		"client": [
+			"win.demistorm.mcpositioneditor.fabric.client.FabricClient"
+		],
+		"modmenu": [
+			"win.demistorm.mcpositioneditor.fabric.client.FabricConfigScreen"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=${fabric_loader_version}",
+		"minecraft": "${minecraft_version}",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"recommends": {
+		"vivecraft": ">=1.3.3"
+	},
+	"suggests": {
+		"modmenu": "*"
+	},
+	"mixins": [
+		"mcpositioneditor.mixins.json",
+		"mcpositioneditor-vivecraft.mixins.json"
+	]
+}

@@ -1,0 +1,19 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "priority": 900,
+  "package": "win.demistorm.mcpositioneditor.mixin.vivecraft",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [],
+  "client": [
+    "GuiHandlerMixin",
+    "GuiVRHotbarMixin",
+    "InteractiveHotbarModuleMixin",
+    "VivecraftItemRenderingMixin",
+    "VRPlayerMixin"
+  ],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

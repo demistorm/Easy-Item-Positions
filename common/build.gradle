@@ -1,0 +1,63 @@
+// Common module build configuration for MCPositionEditor
+// All editor logic, mixins, VR glue and export code lives here
+
+// Configure Architectury for this common module
+architectury {
+    common(rootProject.enabled_platforms.split(","))
+}
+
+// Loom configuration for the common module
+loom {
+    // mixin AP is off by default in loom 1.13+, we need it for refmap generation
+    mixin {
+        useLegacyMixinAp = true
+        defaultRefmapName.set("mcpositioneditor.refmap.json")
+    }
+}
+
+repositories {
+    // Modrinth Maven for Vivecraft dependency
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+    }
+}
+
+dependencies {
+    // Fabric loader dependency - needed for @Environment annotations only
+    // This allows us to separate client-side code from server-side code across all loaders
+    // IMPORTANT: Do NOT use other Fabric classes in common code - only annotations!
+    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+
+    // Vivecraft API (compile only; the fabric artifact carries the same API on every loader)
+    // Optional at runtime - everything VR is gated behind VivecraftGate
+    modCompileOnly "maven.modrinth:vivecraft:${rootProject.minecraft_version}-${rootProject.vivecraft_version}-fabric"
+}
+
+// Publishing configuration for the common module
+publishing {
+    publications {
+        mavenCommon(MavenPublication) {
+            artifactId = rootProject.archives_base_name
+            from components.java
+        }
+    }
+
+    // Configure repositories for publishing (if needed in future)
+    repositories {
+        // Add repositories to publish to here
+    }
+}
+
+// Java configuration for the common module
+java {
+    // Ensure consistent Java version across all platforms
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+// Additional Java compile options
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release = 21
+}

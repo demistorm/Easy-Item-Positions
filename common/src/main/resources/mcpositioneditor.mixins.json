@@ -1,0 +1,26 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "win.demistorm.mcpositioneditor.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [],
+  "client": [
+    "BlockModelWrapperAccessor",
+    "BlockModelWrapperMixin",
+    "BlockModelWrapperUnbakedMixin",
+    "GameRendererAccessor",
+    "ItemInHandRendererMixin",
+    "MinecraftMixin",
+    "ModelManagerMixin",
+    "ModelRenderPropertiesMixin",
+    "MultiBufferSourceMixin",
+    "RenderPipelinesAccessor",
+    "RenderTypeAccessor",
+    "SpecialModelWrapperMixin",
+    "SpecialModelWrapperUnbakedMixin"
+  ],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

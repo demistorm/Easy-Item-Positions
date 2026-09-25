@@ -1,0 +1,144 @@
+// Fabric module build configuration for MCPositionEditor
+// This module contains Fabric-specific implementations and runtime dependencies
+// All common logic is in the common module - this just handles Fabric integration
+
+plugins {
+    // Shadow plugin for bundling common module
+    id 'com.gradleup.shadow' version '9.4.3'
+}
+
+// Configure Architectury for this Fabric module
+architectury {
+    platformSetupLoomIde()
+    fabric()
+}
+
+// Set loader-specific archive name for better organization
+base {
+    archivesName = rootProject.archives_base_name + "-fabric"
+}
+
+// Loom configuration for the Fabric module
+loom {
+    // Access widener - add if needed in the future
+    // def aw = project(":common").file("src/main/resources/mcpositioneditor.accesswidener")
+    // if (aw.exists()) {
+    //     accessWidenerPath.set(aw)
+    // }
+}
+
+configurations {
+    // Common module configuration
+    common
+    shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this
+
+    // Build configuration inheritance
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentFabric.extendsFrom common
+}
+
+sourceSets {
+    main {
+        compileClasspath += sourceSets.main.compileClasspath
+    }
+}
+
+dependencies {
+    // Core Fabric dependencies
+    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+    modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
+
+    // Common module
+    common(project(path: ":common", configuration: "namedElements")) { transitive = false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive = false }
+
+    // Vivecraft runtime in dev (optional at runtime for players)
+    modApi "maven.modrinth:vivecraft:${rootProject.minecraft_version}-${rootProject.vivecraft_version}-fabric"
+
+    // Vivecraft's own runtime deps - the Modrinth jar doesn't JiJ them, so dev needs them explicitly
+    // (players get these from Vivecraft itself in production)
+    implementation 'com.electronwill.night-config:toml:3.6.6'
+    implementation 'com.electronwill.night-config:core:3.6.6'
+    implementation "org.lwjgl:lwjgl-openvr:3.3.3"
+    implementation "org.lwjgl:lwjgl-openvr:3.3.3:natives-linux"
+    implementation "org.lwjgl:lwjgl-openvr:3.3.3:natives-windows"
+    implementation "org.lwjgl:lwjgl-openvr:3.3.3:natives-macos"
+    implementation "com.illposed.osc:javaosc-core:0.9"
+    implementation "com.github.bhaptics:tact-java:0.1.4"
+    implementation "org.java-websocket:Java-WebSocket:1.5.1"
+
+    // Mod Menu integration for Fabric users - API for compiling, live in dev runs.
+    // 17.0.0 release lives on Modrinth (the Terraformers maven only carries its betas)
+    modCompileOnly "maven.modrinth:modmenu:${rootProject.modmenu_version}"
+    modLocalRuntime "maven.modrinth:modmenu:${rootProject.modmenu_version}"
+
+    // Sodium in dev runs only - optional for players, handy while testing
+    modLocalRuntime "maven.modrinth:sodium:${rootProject.sodium_version}"
+}
+
+// Process resources and expand version placeholders
+processResources {
+    inputs.property "version", project.version
+    inputs.property "minecraft_version", rootProject.minecraft_version
+    inputs.property "fabric_loader_version", rootProject.fabric_loader_version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": inputs.properties.version,
+                "minecraft_version": inputs.properties.minecraft_version,
+                "fabric_loader_version": inputs.properties.fabric_loader_version
+    }
+}
+
+// Configure shadow JAR for including common module
+shadowJar {
+    exclude "architectury.common.json"
+    configurations = [project.configurations.shadowCommon]
+    archiveClassifier = "dev-shadow"
+}
+
+// Remap shadow JAR to proper Fabric format
+remapJar {
+    input.set shadowJar.archiveFile
+    dependsOn shadowJar
+    archiveClassifier = null
+}
+
+// Configure regular JAR for development
+jar {
+    archiveClassifier = "dev"
+}
+
+// Configure sources JAR to include common module sources
+sourcesJar {
+    def commonSources = project(":common").sourcesJar
+    dependsOn commonSources
+    from commonSources.archiveFile.map { zipTree(it) }
+}
+
+// Configure Java components for publishing
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
+    }
+}
+
+// Extra repos for Vivecraft's dev-time deps (bhaptics lives on jitpack)
+repositories {
+    maven { url = "https://jitpack.io" }
+    mavenCentral()
+}
+
+// Publishing configuration for Fabric builds
+publishing {
+    publications {
+        mavenFabric(MavenPublication) {
+            artifactId = rootProject.archives_base_name + "-" + project.name
+            from components.java
+        }
+    }
+
+    repositories {
+        // Add repositories to publish to here
+    }
+}

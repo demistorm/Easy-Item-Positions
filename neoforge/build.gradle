@@ -1,0 +1,128 @@
+// NeoForge module build configuration for MCPositionEditor
+// This module contains NeoForge-specific implementations and runtime dependencies
+// All common logic is in the common module - this just handles NeoForge integration
+
+plugins {
+    // Shadow plugin for bundling common module
+    id 'com.gradleup.shadow' version '9.4.3'
+}
+
+// Configure Architectury for this NeoForge module
+architectury {
+    platformSetupLoomIde()
+    forge()
+}
+
+// Set loader-specific archive name for better organization
+base {
+    archivesName = rootProject.archives_base_name + "-neoforge"
+}
+
+repositories {
+    maven {
+        url = "https://maven.neoforged.net/releases/"
+    }
+}
+
+// Loom configuration for the NeoForge module
+loom {
+    // Dev-run fix: declare the mod as main + common source sets so both load in the
+    // transformed mod layer (otherwise common classes dual-load and KeyMapping arrays CCE)
+    mods {
+        mcpositioneditor {
+            sourceSet sourceSets.main
+            sourceSet project(":common").sourceSets.main
+        }
+    }
+}
+
+configurations {
+    // Common module configuration
+    common
+    shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this
+
+    // Build configuration inheritance
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentNeoForge.extendsFrom common
+}
+
+dependencies {
+    // Core NeoForge dependency
+    neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
+
+    // Common module
+    common(project(path: ":common", configuration: "namedElements")) { transitive = false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive = false }
+
+    // Vivecraft runtime in dev (optional at runtime for players)
+    implementation "maven.modrinth:vivecraft:${rootProject.minecraft_version}-${rootProject.vivecraft_version}-neoforge"
+}
+
+// Process resources and expand version placeholders
+processResources {
+    inputs.property "version", project.version
+    inputs.property "minecraft_version", rootProject.minecraft_version
+    inputs.property "neoforge_version", rootProject.neoforge_version
+
+    // dev-run fix: FML resolves mixin configs from this module's resource roots only
+    // (the originals ride along from common/ too, shadowJar dedups the production jar)
+    from(project(":common").file("src/main/resources")) {
+        include "mcpositioneditor.mixins.json"
+        include "mcpositioneditor-vivecraft.mixins.json"
+    }
+
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand "version": inputs.properties.version,
+                "minecraft_version": inputs.properties.minecraft_version,
+                "neoforge_version": inputs.properties.neoforge_version
+    }
+}
+
+// Configure shadow JAR for including common module
+shadowJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude "architectury.common.json"
+    configurations = [project.configurations.shadowCommon]
+    archiveClassifier = "dev-shadow"
+}
+
+// Remap shadow JAR to proper NeoForge format
+remapJar {
+    input.set shadowJar.archiveFile
+    dependsOn shadowJar
+    archiveClassifier = null
+}
+
+// Configure regular JAR for development
+jar {
+    archiveClassifier = "dev"
+}
+
+// Configure sources JAR to include common module sources
+sourcesJar {
+    def commonSources = project(":common").sourcesJar
+    dependsOn commonSources
+    from commonSources.archiveFile.map { zipTree(it) }
+}
+
+// Configure Java components for publishing
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
+    }
+}
+
+// Publishing configuration for NeoForge builds
+publishing {
+    publications {
+        mavenNeoForge(MavenPublication) {
+            artifactId = rootProject.archives_base_name + "-" + project.name
+            from components.java
+        }
+    }
+
+    repositories {
+        // Add repositories to publish to here
+    }
+}
