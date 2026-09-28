@@ -1,11 +1,14 @@
 modLoader = "javafml"
 loaderVersion = "[1,)"
+issueTrackerURL = "https://github.com/demistorm/Easy-Item-Positions/issues"
 license = "GPL-3.0"
 
 [[mods]]
 modId = "mcpositioneditor"
 version = "${version}"
 displayName = "Easy Item Positions"
+displayURL = "https://github.com/demistorm/Easy-Item-Positions"
+logoFile = "eip_wip_icon_E.png"
 authors = "Halfstorm"
 description = '''
 Live item position editor for flatscreen and VR

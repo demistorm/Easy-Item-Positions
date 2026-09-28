@@ -8,10 +8,12 @@
 		"Halfstorm"
 	],
 	"contact": {
-		"homepage": "https://github.com/demistorm",
-		"sources": "https://github.com/demistorm"
+		"homepage": "https://github.com/demistorm/Easy-Item-Positions",
+		"sources": "https://github.com/demistorm/Easy-Item-Positions",
+        "issues": "https://github.com/demistorm/Easy-Item-Positions/issues"
 	},
 	"license": "GPL-3.0",
+    "icon": "eip_wip_icon_E.png",
 	"environment": "client",
 	"entrypoints": {
 		"main": [
@@ -39,5 +41,13 @@
 	"mixins": [
 		"mcpositioneditor.mixins.json",
 		"mcpositioneditor-vivecraft.mixins.json"
-	]
+	],
+    "custom": {
+      "modmenu": {
+        "links": {
+          "modmenu.discord": "https://discord.gg/7uttzPbTGq",
+          "modmenu.kofi": "https://ko-fi.com/hstorm"
+        }
+      }
+    }
 }
