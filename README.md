@@ -49,6 +49,19 @@ This works very well for instance in the case of eating animation resource packs
 
 ---
 
+#### Commands:
+- /eip edit (opens the editor UI)
+- /eip export (exports current saved transforms as a resourcepack)
+- /eip clear (clears local transforms config, aka clears all currently saved item transforms. Does not effect exported resourcepacks)
+
+---
+
+*Video thanks to Carter the Cat!* When this was recorded, the mod was called MC Position Editor instead of the official name Easy Item Positions. All functionality is the same.*
+
+[![Upcoming Mods Quick Look](https://markdown-videos-api.jorgenkh.no/url?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dz5mIlh4ieLg%26t%3D5s)](https://www.youtube.com/watch?v=z5mIlh4ieLg&t=5s)
+
+---
+
 #### Contact
 For any questions/issues/ideas, feel free to contact me on [Discord](https://discord.gg/7uttzPbTGq) or [Matrix](https://matrix.to/#/#stormcommunity:matrix.org) :)
 
