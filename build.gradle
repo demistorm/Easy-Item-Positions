@@ -5,8 +5,8 @@
 plugins {
     // Architectury plugin enables multi-loader builds
     id "architectury-plugin" version "$architectury_plugin_version"
-    // Loom plugin for Minecraft modding (applied to subprojects)
-    id "dev.architectury.loom" version "$loom_version" apply false
+    // Loom-no-remap plugin for Minecraft modding (applied to subprojects)
+    id "dev.architectury.loom-no-remap" version "$loom_version" apply false
 }
 
 // Tell Architectury which Minecraft version we're targeting
@@ -17,12 +17,7 @@ architectury {
 // Configure all subprojects (common/, fabric/, forge/, neoforge/)
 subprojects {
     apply plugin: "java"
-    apply plugin: "dev.architectury.loom"
-
-    loom {
-        // Suppress Mojang mappings license warning
-        silentMojangMappingsLicense()
-    }
+    apply plugin: "dev.architectury.loom-no-remap"
 
     repositories {
         // Local Maven repository (handy for locally installed Vivecraft builds)
@@ -59,25 +54,25 @@ subprojects {
         }
     }
 
+    // Vivecraft MC version override (falls back to minecraft_version when blank)
+    ext.vivecraftMcVersion = rootProject.hasProperty('vivecraft_mc_override') && !rootProject.vivecraft_mc_override.isEmpty()
+        ? rootProject.vivecraft_mc_override
+        : rootProject.minecraft_version
+
     dependencies {
         // Core Minecraft dependency
         minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
 
-        // Mappings for Minecraft obfuscation
-        mappings loom.layered() {
-            officialMojangMappings()
-        }
-
         // Depend on Fabric loader here to use the Fabric @Environment annotations
         // This is needed for client-side code separation across all loaders
         // Do NOT use other classes from fabric loader in common code
-        modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+        implementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     }
 
-    // Ensure all Java compilation uses UTF-8 encoding and Java 21
+    // Ensure all Java compilation uses UTF-8 encoding and Java 25
     tasks.withType(JavaCompile).configureEach {
         options.encoding = "UTF-8"
-        options.release = 21
+        options.release = 25
     }
 
     // Generate sources JAR for all subprojects (helpful for debugging)
@@ -102,7 +97,7 @@ allprojects {
     // Consistent Java compilation settings
     tasks.withType(JavaCompile).configureEach {
         options.encoding = "UTF-8"
-        options.release = 21
+        options.release = 25
     }
 
     // Generate sources for all projects
@@ -127,21 +122,21 @@ tasks.register('collectProductionJars', Copy) {
     if ('fabric' in enabledPlatforms) {
         from("fabric/build/libs") {
             include "*-fabric-*.jar"
-            exclude "*-dev.jar", "*-dev-shadow.jar", "*-sources.jar"
+            exclude "*-raw.jar", "*-dev-shadow.jar", "*-sources.jar"
         }
     }
 
     if ('forge' in enabledPlatforms) {
         from("forge/build/libs") {
             include "*-forge-*.jar"
-            exclude "*-dev.jar", "*-dev-shadow.jar", "*-sources.jar"
+            exclude "*-raw.jar", "*-dev-shadow.jar", "*-sources.jar"
         }
     }
 
     if ('neoforge' in enabledPlatforms) {
         from("neoforge/build/libs") {
             include "*-neoforge-*.jar"
-            exclude "*-dev.jar", "*-dev-shadow.jar", "*-sources.jar"
+            exclude "*-raw.jar", "*-dev-shadow.jar", "*-sources.jar"
         }
     }
 
@@ -164,7 +159,7 @@ tasks.register('collectProductionJars', Copy) {
 
 // Make sure JARs are built before collecting
 collectProductionJars.dependsOn {
-    tasks.matching { task -> task.name == "remapJar" || task.name == "jar" }
+    tasks.matching { task -> task.name == "shadowJar" || task.name == "jar" }
 }
 
 // Make collection happen after every build AND after clean build
