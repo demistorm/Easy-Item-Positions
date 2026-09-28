@@ -56,7 +56,7 @@ This works very well for instance in the case of eating animation resource packs
 
 ---
 
-*Video thanks to Carter the Cat!* When this was recorded, the mod was called MC Position Editor instead of the official name Easy Item Positions. All functionality is the same.*
+*Video thanks to Carter the Cat!* *When this was recorded, the mod was called MC Position Editor instead of the official name Easy Item Positions. All functionality is the same.*
 
 [![Upcoming Mods Quick Look](https://markdown-videos-api.jorgenkh.no/url?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dz5mIlh4ieLg%26t%3D5s)](https://www.youtube.com/watch?v=z5mIlh4ieLg&t=5s)
 
