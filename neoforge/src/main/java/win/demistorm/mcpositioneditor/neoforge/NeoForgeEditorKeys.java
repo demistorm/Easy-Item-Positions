@@ -10,7 +10,7 @@ public final class NeoForgeEditorKeys {
 
     private NeoForgeEditorKeys() {}
 
-    public static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(
+    public static final KeyMapping.Category CATEGORY = new KeyMapping.Category(
         Identifier.fromNamespaceAndPath("mcpositioneditor", "editor")
     );
 

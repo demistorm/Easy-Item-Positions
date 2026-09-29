@@ -24,6 +24,7 @@ public final class NeoClient {
 
     @SubscribeEvent
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
+        event.registerCategory(NeoForgeEditorKeys.CATEGORY);
         event.register(NeoForgeEditorKeys.TOGGLE);
         event.register(NeoForgeEditorKeys.GRAB);
     }

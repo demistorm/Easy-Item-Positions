@@ -1,14 +1,16 @@
 package win.demistorm.mcpositioneditor.mixin;
 
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.item.BlockModelWrapper;
+import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
+import net.minecraft.client.resources.model.geometry.QuadCollection;
+import org.joml.Matrix4fc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-import java.util.List;
-
-@Mixin(BlockModelWrapper.class)
+@Mixin(CuboidItemModelWrapper.class)
 public interface BlockModelWrapperAccessor {
     @Accessor("quads")
-    List<BakedQuad> mcpositioneditor$quads();
+    QuadCollection mcpositioneditor$quads();
+
+    @Accessor("transformation")
+    Matrix4fc mcpositioneditor$transformation();
 }

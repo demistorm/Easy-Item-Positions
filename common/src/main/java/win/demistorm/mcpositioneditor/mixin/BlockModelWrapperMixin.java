@@ -1,7 +1,7 @@
 package win.demistorm.mcpositioneditor.mixin;
 
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.item.BlockModelWrapper;
+import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.resources.Identifier;
@@ -18,7 +18,7 @@ import win.demistorm.mcpositioneditor.editor.EditorRenderContext;
 import win.demistorm.mcpositioneditor.editor.GizmoRenderer;
 
 // Tag which model is being resolved so ModelRenderPropertiesMixin knows whose transform to override
-@Mixin(BlockModelWrapper.class)
+@Mixin(CuboidItemModelWrapper.class)
 public abstract class BlockModelWrapperMixin {
 
     @Inject(method = "update", at = @At("HEAD"))
@@ -27,11 +27,12 @@ public abstract class BlockModelWrapperMixin {
                                              @Nullable ClientLevel clientLevel, @Nullable ItemOwner itemOwner, int i,
                                              CallbackInfo ci) {
         Identifier id =
-            EditorRenderContext.idOf((BlockModelWrapper) (Object) this);
+            EditorRenderContext.idOf((CuboidItemModelWrapper) (Object) this);
         EditorRenderContext.beginModel(id, itemStack, itemDisplayContext);
         if (EditorController.isSessionOpen()) {
-            GizmoRenderer.noteModelQuads(
-                id, ((BlockModelWrapperAccessor) (Object) this).mcpositioneditor$quads());
+            BlockModelWrapperAccessor self = (BlockModelWrapperAccessor) (Object) this;
+            GizmoRenderer.noteModelQuads(id, self.mcpositioneditor$quads().getAll(),
+                self.mcpositioneditor$transformation());
         }
     }
 

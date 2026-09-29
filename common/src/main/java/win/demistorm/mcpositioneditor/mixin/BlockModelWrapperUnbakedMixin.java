@@ -1,8 +1,9 @@
 package win.demistorm.mcpositioneditor.mixin;
 
-import net.minecraft.client.renderer.item.BlockModelWrapper;
+import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
 import net.minecraft.client.renderer.item.ItemModel;
 import net.minecraft.resources.Identifier;
+import org.joml.Matrix4fc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -10,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import win.demistorm.mcpositioneditor.editor.TransformOverrideManager;
 
-@Mixin(BlockModelWrapper.Unbaked.class)
+@Mixin(CuboidItemModelWrapper.Unbaked.class)
 public abstract class BlockModelWrapperUnbakedMixin {
 
     @Shadow
@@ -18,8 +19,9 @@ public abstract class BlockModelWrapperUnbakedMixin {
 
     @Inject(method = "bake", at = @At("TAIL"))
     private void mcpositioneditor$registerWrapper(ItemModel.BakingContext bakingContext,
+                                                  Matrix4fc transformation,
                                                   CallbackInfoReturnable<ItemModel> cir) {
-        if (cir.getReturnValue() instanceof BlockModelWrapper wrapper) {
+        if (cir.getReturnValue() instanceof CuboidItemModelWrapper wrapper) {
             TransformOverrideManager.registerWrapper(wrapper, model());
         }
     }

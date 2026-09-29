@@ -4,7 +4,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -12,7 +11,6 @@ import net.minecraft.world.item.ItemStack;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import win.demistorm.mcpositioneditor.ConfigHelper;
-import win.demistorm.mcpositioneditor.mixin.GameRendererAccessor;
 import win.demistorm.mcpositioneditor.client.VRAbstraction;
 import win.demistorm.mcpositioneditor.client.VRDebug;
 
@@ -84,15 +82,19 @@ public final class GizmoRenderer {
     private static final java.util.Map<net.minecraft.resources.Identifier, Vector3f> BOUNDS_CENTER =
         new java.util.HashMap<>();
 
+    private static final java.util.Map<net.minecraft.resources.Identifier, org.joml.Matrix4fc> LOCAL_TRANSFORM =
+        new java.util.HashMap<>();
+
     public static void noteModelQuads(net.minecraft.resources.Identifier modelId,
-                                       java.util.List<net.minecraft.client.renderer.block.model.BakedQuad> quads) {
+                                       java.util.List<net.minecraft.client.resources.model.geometry.BakedQuad> quads,
+                                       org.joml.Matrix4fc localTransform) {
         if (modelId == null || quads == null || quads.isEmpty() || BOUNDS_CENTER.containsKey(modelId)) {
             return;
         }
         float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, minZ = Float.MAX_VALUE;
         float maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE, maxZ = -Float.MAX_VALUE;
-        for (net.minecraft.client.renderer.block.model.BakedQuad q : quads) {
-            for (int i = 0; i < net.minecraft.client.renderer.block.model.BakedQuad.VERTEX_COUNT; i++) {
+        for (net.minecraft.client.resources.model.geometry.BakedQuad q : quads) {
+            for (int i = 0; i < net.minecraft.client.resources.model.geometry.BakedQuad.VERTEX_COUNT; i++) {
                 org.joml.Vector3fc p = q.position(i);
                 minX = Math.min(minX, p.x()); maxX = Math.max(maxX, p.x());
                 minY = Math.min(minY, p.y()); maxY = Math.max(maxY, p.y());
@@ -100,6 +102,7 @@ public final class GizmoRenderer {
             }
         }
         BOUNDS_CENTER.put(modelId, new Vector3f((minX + maxX) / 2f, (minY + maxY) / 2f, (minZ + maxZ) / 2f));
+        LOCAL_TRANSFORM.put(modelId, localTransform == null ? new org.joml.Matrix4f() : localTransform);
     }
 
     private static Vector3f anchorLocal() {
@@ -183,10 +186,15 @@ public final class GizmoRenderer {
         }
 
         Minecraft mc = Minecraft.getInstance();
-        net.minecraft.client.renderer.block.model.ItemTransform working = EditorController.working();
+        net.minecraft.client.resources.model.cuboid.ItemTransform working = EditorController.working();
 
         poseStack.pushPose();
         working.apply(renderCtx.leftHand(), poseStack.last());
+        // 26.1 models can bake in a local transform (mirrored here so the gizmo tracks the item)
+        org.joml.Matrix4fc local = LOCAL_TRANSFORM.get(EditorController.selectedModel());
+        if (local != null) {
+            poseStack.last().mulPose(local);
+        }
         Vector3f anchor = anchorLocal();
         poseStack.translate(anchor.x, anchor.y, anchor.z);
 
@@ -458,9 +466,7 @@ public final class GizmoRenderer {
 
     private static org.joml.Vector4f gizmoClipSpace(Vector3f localPoint, double aspect) {
         Minecraft mc = Minecraft.getInstance();
-        GameRenderer gr = mc.gameRenderer;
-        float partial = gr.getMainCamera().getPartialTickTime();
-        float fov = ((GameRendererAccessor) gr).mcpositioneditor$getFov(gr.getMainCamera(), partial, false);
+        float fov = mc.gameRenderer.getMainCamera().getFov();
         Matrix4f proj = new Matrix4f().perspective((float) Math.toRadians(fov), (float) aspect, 0.05f, 100.0f);
         Vector3f local = LAST_GIZMO_MATRIX.transformPosition(new Vector3f(localPoint));
         return proj.transform(LAST_MV.transform(

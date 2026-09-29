@@ -18,7 +18,7 @@ public final class Commands {
             if (EditorController.openSession()) {
                 mc.setScreen(new EditorScreen());
             } else if (mc.player != null) {
-                mc.player.displayClientMessage(Component.literal("Hold an item to edit its position"), true);
+                mc.player.sendOverlayMessage(Component.literal("Hold an item to edit its position"));
             }
         });
         return 1;
@@ -29,7 +29,7 @@ public final class Commands {
         mc.execute(() -> {
             String result = EditorController.export();
             if (mc.player != null) {
-                mc.player.displayClientMessage(Component.literal("[EIP] " + result), false);
+                mc.player.sendSystemMessage(Component.literal("[EIP] " + result));
             }
         });
         return 1;
@@ -41,7 +41,7 @@ public final class Commands {
         Minecraft mc = Minecraft.getInstance();
         mc.execute(() -> {
             if (mc.player != null) {
-                mc.player.displayClientMessage(Component.literal("[EIP] Cleared all saved overrides"), false);
+                mc.player.sendSystemMessage(Component.literal("[EIP] Cleared all saved overrides"));
             }
         });
         return 1;

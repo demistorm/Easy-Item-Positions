@@ -1,8 +1,6 @@
 package win.demistorm.mcpositioneditor.editor;
 
-import net.minecraft.client.renderer.block.model.ItemTransform;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
-import net.minecraft.client.renderer.item.BlockModelWrapper;
+import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
 import net.minecraft.client.renderer.item.CompositeModel;
 import net.minecraft.client.renderer.item.ConditionalItemModel;
 import net.minecraft.client.renderer.item.ItemModel;
@@ -11,6 +9,8 @@ import net.minecraft.client.renderer.item.SelectItemModel;
 import net.minecraft.client.renderer.item.SpecialModelWrapper;
 import net.minecraft.client.resources.model.ClientItemInfoLoader;
 import net.minecraft.client.resources.model.UnbakedModel;
+import net.minecraft.client.resources.model.cuboid.ItemTransform;
+import net.minecraft.client.resources.model.cuboid.ItemTransforms;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -55,7 +55,7 @@ public final class TransformOverrideManager {
 
     private static volatile Map<Identifier, UnbakedModel> RAW_MODELS = Map.of();
 
-    private static final Map<BlockModelWrapper, Identifier> WRAPPER_IDS = new ConcurrentHashMap<>();
+    private static final Map<CuboidItemModelWrapper, Identifier> WRAPPER_IDS = new ConcurrentHashMap<>();
 
     private static final Map<SpecialModelWrapper<?>, Identifier> SPECIAL_WRAPPER_IDS = new ConcurrentHashMap<>();
 
@@ -98,7 +98,7 @@ public final class TransformOverrideManager {
 
     private static void collectFamily(ItemModel.Unbaked node, Set<Identifier> out) {
         switch (node) {
-            case BlockModelWrapper.Unbaked block -> out.add(block.model());
+            case CuboidItemModelWrapper.Unbaked block -> out.add(block.model());
             case SelectItemModel.Unbaked select -> {
                 select.unbakedSwitch().cases().forEach(c -> collectFamily(c.model(), out));
                 select.fallback().ifPresent(f -> collectFamily(f, out));
@@ -235,11 +235,11 @@ public final class TransformOverrideManager {
         return stack.get(DataComponents.ITEM_MODEL);
     }
 
-    public static void registerWrapper(BlockModelWrapper wrapper, Identifier modelId) {
+    public static void registerWrapper(CuboidItemModelWrapper wrapper, Identifier modelId) {
         WRAPPER_IDS.put(wrapper, modelId);
     }
 
-    public static Identifier wrapperId(BlockModelWrapper wrapper) {
+    public static Identifier wrapperId(CuboidItemModelWrapper wrapper) {
         return WRAPPER_IDS.get(wrapper);
     }
 

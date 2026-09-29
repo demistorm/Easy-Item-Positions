@@ -8,7 +8,6 @@
     "BlockModelWrapperAccessor",
     "BlockModelWrapperMixin",
     "BlockModelWrapperUnbakedMixin",
-    "GameRendererAccessor",
     "ItemInHandRendererMixin",
     "MinecraftMixin",
     "ModelManagerMixin",

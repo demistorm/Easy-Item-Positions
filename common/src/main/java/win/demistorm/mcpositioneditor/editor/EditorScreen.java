@@ -1,7 +1,7 @@
 package win.demistorm.mcpositioneditor.editor;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -148,9 +148,8 @@ public class EditorScreen extends Screen {
     private void addFields(EditBox[] fields, int x, int y, String label) {
         int fx = x + 38;
         for (int i = 0; i < 3; i++) {
-            EditBox box = new EditBox(this.font, fx, y, 34, 16, Component.literal(label + i));
+            EditBox box = new NumericEditBox(this.font, fx, y, 34, 16, Component.literal(label + i));
             box.setMaxLength(12);
-            box.setFilter(s -> s.isEmpty() || s.equals("-") || s.matches("-?\\d*(\\.\\d*)?"));
             fields[i] = addRenderableWidget(box);
             fx += 36;
         }
@@ -214,7 +213,7 @@ public class EditorScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         double dt = lastRenderNanos > 0 ? (System.nanoTime() - lastRenderNanos) / 1.0E9 : 0.016;
         lastRenderNanos = System.nanoTime();
 
@@ -260,12 +259,12 @@ public class EditorScreen extends Screen {
         }
         hasFocusedEditBox = anyFocus;
 
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
 
         int ry = readoutY;
-        guiGraphics.drawString(this.font, "rot\u00b0", readoutX + 4, ry + 4, TEXT_COLOR);
-        guiGraphics.drawString(this.font, "pos", readoutX + 4, ry + 25, TEXT_COLOR);
-        guiGraphics.drawString(this.font, "scale", readoutX + 4, ry + 46, TEXT_COLOR);
+        guiGraphics.text(this.font, "rot\u00b0", readoutX + 4, ry + 4, TEXT_COLOR);
+        guiGraphics.text(this.font, "pos", readoutX + 4, ry + 25, TEXT_COLOR);
+        guiGraphics.text(this.font, "scale", readoutX + 4, ry + 46, TEXT_COLOR);
 
         int hintY = this.height - 44;
         Identifier provider = EditorController.providerForSelected();
@@ -276,10 +275,10 @@ public class EditorScreen extends Screen {
         if (compact) {
             inheritedY = Math.min(inheritedY, hintY - 12);
         }
-        guiGraphics.drawString(this.font, inherited, panelX + 2, inheritedY, HINT_COLOR);
+        guiGraphics.text(this.font, inherited, panelX + 2, inheritedY, HINT_COLOR);
 
         Identifier sel = EditorController.selectedModel();
-        guiGraphics.drawString(this.font, "editing: " + EditorController.shortName(sel), panelX + 2, hintY, ACCENT_COLOR);
+        guiGraphics.text(this.font, "editing: " + EditorController.shortName(sel), panelX + 2, hintY, ACCENT_COLOR);
         ItemDisplayContext vrCtx = EditorController.vrEffectiveContext();
         String live;
         if (EditorController.isVrPreviewActive()) {
@@ -291,7 +290,7 @@ public class EditorScreen extends Screen {
         } else {
             live = "live context: " + EditorController.context().getSerializedName();
         }
-        guiGraphics.drawString(this.font, live + (VRAbstraction.isActive() ? "  [VR]" : ""), panelX + 2, hintY + 10, HINT_COLOR);
+        guiGraphics.text(this.font, live + (VRAbstraction.isActive() ? "  [VR]" : ""), panelX + 2, hintY + 10, HINT_COLOR);
 
         GizmoInput.updateHover();
         GizmoInput.tickKeyboard(dt);
@@ -366,13 +365,13 @@ public class EditorScreen extends Screen {
 
     private void status(String message) {
         if (message != null && minecraft.player != null) {
-            minecraft.player.displayClientMessage(Component.literal(message), true);
+            minecraft.player.sendOverlayMessage(Component.literal(message));
         }
         log.info("Editor: {}", message == null ? "" : message);
     }
 
     @Override
-    public void renderBackground(GuiGraphics guiGraphics, int i, int j, float f) {
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int i, int j, float f) {
     }
 
     @Override

@@ -1,5 +1,7 @@
 package win.demistorm.mcpositioneditor.client;
 
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
@@ -17,6 +19,7 @@ import org.joml.Vector3f;
 import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.extensions.EntityRenderDispatcherVRExtension;
 import org.vivecraft.client_vr.render.VRArmRenderer;
+import org.vivecraft.client_vr.render.VRShaders;
 import org.vivecraft.client_vr.render.VivecraftItemRendering;
 import org.vivecraft.client_vr.render.VivecraftItemRendering.VivecraftItemTransformType;
 import win.demistorm.mcpositioneditor.ConfigHelper;
@@ -48,6 +51,12 @@ public final class VRPreviewRenderer {
                                   int light) {
         Minecraft mc = Minecraft.getInstance();
         boolean rightHand = armSide(player);
+
+        // Vivecraft's arm type swaps in its own projection uniform (never allocated on desktop)
+        GpuBufferSlice projection = RenderSystem.getProjectionMatrixBuffer();
+        if (projection != null) {
+            VRShaders.UNDISTORTED_PROJ_BUFFER = projection;
+        }
 
         poseStack.pushPose();
 

@@ -1,7 +1,7 @@
 package win.demistorm.mcpositioneditor.editor;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.block.model.ItemTransform;
+import net.minecraft.client.resources.model.cuboid.ItemTransform;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;

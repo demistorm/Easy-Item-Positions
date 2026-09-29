@@ -1,6 +1,6 @@
 package win.demistorm.mcpositioneditor.fabric;
 
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
@@ -21,8 +21,8 @@ public final class FabricEditorKeys {
     public static void register() {
         toggle = new KeyMapping(EditorKeys.TOGGLE_KEY_NAME, GLFW.GLFW_KEY_P, CATEGORY);
         grab = new KeyMapping(EditorKeys.GRAB_KEY_NAME, -1, CATEGORY);
-        KeyBindingHelper.registerKeyBinding(toggle);
-        KeyBindingHelper.registerKeyBinding(grab);
+        KeyMappingHelper.registerKeyMapping(toggle);
+        KeyMappingHelper.registerKeyMapping(grab);
 
         EditorKeys.install(new EditorKeys.Impl() {
             @Override

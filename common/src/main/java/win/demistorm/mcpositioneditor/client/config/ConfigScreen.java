@@ -1,7 +1,7 @@
 package win.demistorm.mcpositioneditor.client.config;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
@@ -76,8 +76,8 @@ public final class ConfigScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
-        context.drawCenteredString(font, title, width / 2, 20, 0xFFFFFFFF);
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(context, mouseX, mouseY, delta);
+        context.centeredText(font, title, width / 2, 20, 0xFFFFFFFF);
     }
 }

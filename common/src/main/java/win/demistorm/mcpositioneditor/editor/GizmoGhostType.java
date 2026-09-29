@@ -1,8 +1,10 @@
 package win.demistorm.mcpositioneditor.editor;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
+import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.DepthTestFunction;
+import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -22,11 +24,10 @@ public final class GizmoGhostType {
         .withUniform("Globals", UniformType.UNIFORM_BUFFER)
         .withVertexShader("core/rendertype_lines")
         .withFragmentShader("core/rendertype_lines")
-        .withBlend(BlendFunction.TRANSLUCENT)
+        .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
         .withCull(false)
         .withVertexFormat(DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH, VertexFormat.Mode.LINES)
-        .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
-        .withDepthWrite(false)
+        .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false, 0.0f, 0.0f))
         .withLocation(Identifier.fromNamespaceAndPath("mcpositioneditor", "pipeline/gizmo_ghost_lines"))
         .build();
 

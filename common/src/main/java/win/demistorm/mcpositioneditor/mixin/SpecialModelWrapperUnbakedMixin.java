@@ -3,6 +3,7 @@ package win.demistorm.mcpositioneditor.mixin;
 import net.minecraft.client.renderer.item.ItemModel;
 import net.minecraft.client.renderer.item.SpecialModelWrapper;
 import net.minecraft.resources.Identifier;
+import org.joml.Matrix4fc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,6 +20,7 @@ public abstract class SpecialModelWrapperUnbakedMixin {
 
     @Inject(method = "bake", at = @At("TAIL"))
     private void mcpositioneditor$registerWrapper(ItemModel.BakingContext bakingContext,
+                                                  Matrix4fc transformation,
                                                   CallbackInfoReturnable<ItemModel> cir) {
         if (cir.getReturnValue() instanceof SpecialModelWrapper<?> wrapper) {
             TransformOverrideManager.registerSpecialWrapper(wrapper, base());

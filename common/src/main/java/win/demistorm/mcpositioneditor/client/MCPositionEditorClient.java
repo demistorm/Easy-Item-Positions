@@ -48,7 +48,7 @@ public class MCPositionEditorClient {
                 mc.setScreen(new EditorScreen());
             } else {
                 VRDebug.log("toggle", "click REJECTED, hand=", held, "- hold an item first");
-                mc.player.displayClientMessage(Component.literal("Hold an item to edit its position"), true);
+                mc.player.sendOverlayMessage(Component.literal("Hold an item to edit its position"));
             }
         }
 

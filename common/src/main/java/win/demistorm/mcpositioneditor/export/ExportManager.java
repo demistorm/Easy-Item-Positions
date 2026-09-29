@@ -33,7 +33,7 @@ public final class ExportManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     public static String exportAll() {
-        Map<Identifier, Map<ItemDisplayContext, net.minecraft.client.renderer.block.model.ItemTransform>> overrides =
+        Map<Identifier, Map<ItemDisplayContext, net.minecraft.client.resources.model.cuboid.ItemTransform>> overrides =
             TransformOverrideManager.overrides();
         if (overrides.isEmpty()) {
             return "Nothing to export - save some transforms first";
@@ -53,14 +53,14 @@ public final class ExportManager {
             return "Export failed: " + e.getMessage();
         }
 
-        for (Map.Entry<Identifier, Map<ItemDisplayContext, net.minecraft.client.renderer.block.model.ItemTransform>> entry : overrides.entrySet()) {
+        for (Map.Entry<Identifier, Map<ItemDisplayContext, net.minecraft.client.resources.model.cuboid.ItemTransform>> entry : overrides.entrySet()) {
             Identifier modelId = entry.getKey();
             try {
                 JsonObject root = readOriginalModel(mc, modelId);
                 JsonObject display = root.has("display") && root.get("display").isJsonObject()
                     ? root.getAsJsonObject("display") : new JsonObject();
 
-                for (Map.Entry<ItemDisplayContext, net.minecraft.client.renderer.block.model.ItemTransform> ctxEntry : entry.getValue().entrySet()) {
+                for (Map.Entry<ItemDisplayContext, net.minecraft.client.resources.model.cuboid.ItemTransform> ctxEntry : entry.getValue().entrySet()) {
                     display.add(ctxEntry.getKey().getSerializedName(), serialize(ctxEntry.getValue()));
                 }
                 root.add("display", display);
@@ -116,7 +116,7 @@ public final class ExportManager {
         return new JsonObject();
     }
 
-    private static JsonObject serialize(net.minecraft.client.renderer.block.model.ItemTransform t) {
+    private static JsonObject serialize(net.minecraft.client.resources.model.cuboid.ItemTransform t) {
         JsonObject obj = new JsonObject();
         obj.add("rotation", vec(t.rotation(), 1.0f));
         obj.add("translation", vec(t.translation(), 16.0f));

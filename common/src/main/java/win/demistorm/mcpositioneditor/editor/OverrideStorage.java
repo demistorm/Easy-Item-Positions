@@ -6,7 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.block.model.ItemTransform;
+import net.minecraft.client.resources.model.cuboid.ItemTransform;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;

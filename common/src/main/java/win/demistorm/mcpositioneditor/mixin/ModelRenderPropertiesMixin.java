@@ -1,9 +1,9 @@
 package win.demistorm.mcpositioneditor.mixin;
 
-import net.minecraft.client.renderer.block.model.ItemTransform;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.item.ModelRenderProperties;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.cuboid.ItemTransform;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,7 +22,7 @@ public abstract class ModelRenderPropertiesMixin {
     public abstract boolean usesBlockLight();
 
     @Shadow
-    public abstract TextureAtlasSprite particleIcon();
+    public abstract Material.Baked particleMaterial();
 
     @Inject(method = "applyToLayer", at = @At("HEAD"), cancellable = true)
     private void mcpositioneditor$applyOverride(ItemStackRenderState.LayerRenderState layer,
@@ -35,8 +35,8 @@ public abstract class ModelRenderPropertiesMixin {
         ItemTransform override = EditorController.resolveLive(modelId, itemDisplayContext);
         if (override != null) {
             layer.setUsesBlockLight(this.usesBlockLight());
-            layer.setParticleIcon(this.particleIcon());
-            layer.setTransform(override);
+            layer.setParticleMaterial(this.particleMaterial());
+            layer.setItemTransform(override);
             ci.cancel();
         }
     }

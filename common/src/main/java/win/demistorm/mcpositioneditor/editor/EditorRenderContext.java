@@ -1,6 +1,6 @@
 package win.demistorm.mcpositioneditor.editor;
 
-import net.minecraft.client.renderer.item.BlockModelWrapper;
+import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -39,7 +39,7 @@ public final class EditorRenderContext {
         return HAND_DEPTH.get() > 0;
     }
 
-    public static Identifier idOf(BlockModelWrapper wrapper) {
+    public static Identifier idOf(CuboidItemModelWrapper wrapper) {
         return TransformOverrideManager.wrapperId(wrapper);
     }
 }
