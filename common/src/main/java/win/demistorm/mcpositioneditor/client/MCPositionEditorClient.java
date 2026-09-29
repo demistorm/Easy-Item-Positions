@@ -37,22 +37,22 @@ public class MCPositionEditorClient {
         for (int i = 0; i < clicks; i++) {
             String held = mc.player.getMainHandItem().isEmpty()
                 ? "empty" : String.valueOf(mc.player.getMainHandItem().getItem());
-            if (EditorController.isSessionOpen() || mc.screen instanceof EditorScreen) {
+            if (EditorController.isSessionOpen() || mc.gui.screen() instanceof EditorScreen) {
                 VRDebug.log("toggle", "click, closing session (hand=", held + ")");
-                if (mc.screen instanceof EditorScreen) {
-                    mc.setScreen(null);
+                if (mc.gui.screen() instanceof EditorScreen) {
+                    mc.gui.setScreen(null);
                 }
                 EditorController.closeSession();
             } else if (EditorController.openSession()) {
                 VRDebug.log("toggle", "click, opening editor (hand=", held + ")");
-                mc.setScreen(new EditorScreen());
+                mc.gui.setScreen(new EditorScreen());
             } else {
                 VRDebug.log("toggle", "click REJECTED, hand=", held, "- hold an item first");
                 mc.player.sendOverlayMessage(Component.literal("Hold an item to edit its position"));
             }
         }
 
-        VRAbstraction.setEditorScreenActive(mc.screen instanceof EditorScreen);
+        VRAbstraction.setEditorScreenActive(mc.gui.screen() instanceof EditorScreen);
 
         boolean vrActive = VRAbstraction.isActive();
         if (vrActive != lastVrActive) {
@@ -64,11 +64,11 @@ public class MCPositionEditorClient {
             }
         }
 
-        if (EditorController.isSessionOpen() && VRAbstraction.isActive() && mc.screen == null) {
+        if (EditorController.isSessionOpen() && VRAbstraction.isActive() && mc.gui.screen() == null) {
             if (VRDebug.gate("self-heal")) {
                 VRDebug.log("self-heal", "re-attaching EditorScreen");
             }
-            mc.setScreen(new EditorScreen());
+            mc.gui.setScreen(new EditorScreen());
         }
     }
 

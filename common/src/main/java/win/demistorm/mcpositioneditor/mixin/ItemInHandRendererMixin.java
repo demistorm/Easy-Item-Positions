@@ -33,11 +33,11 @@ public abstract class ItemInHandRendererMixin {
                                           ItemDisplayContext itemDisplayContext, PoseStack poseStack,
                                           SubmitNodeCollector submitNodeCollector, int i, CallbackInfo ci) {
         EditorRenderContext.popHandPath();
-        GizmoRenderer.renderHandGizmo(itemStack, itemDisplayContext, poseStack);
+        GizmoRenderer.renderHandGizmo(itemStack, itemDisplayContext, poseStack, submitNodeCollector);
     }
 
     // Preview replaces the vanilla hand with Vivecraft's arm at a synthetic pose (mainhand only, offhand hides, scoping stays vanilla)
-    @Inject(method = "renderArmWithItem", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "submitArmWithItem", at = @At("HEAD"), cancellable = true)
     private void mcpositioneditor$vrPreviewHand(AbstractClientPlayer player, float partialTick, float pitch,
                                                 InteractionHand hand, float swingProgress, ItemStack itemStack,
                                                 float equippedProgress, PoseStack poseStack,

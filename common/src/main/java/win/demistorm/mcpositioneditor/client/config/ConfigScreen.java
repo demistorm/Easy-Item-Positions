@@ -69,7 +69,7 @@ public final class ConfigScreen extends Screen {
                                     ConfigHelper.ACTIVE.boundsCenteredGizmos = boundsCenteredValue;
                                     ConfigHelper.ACTIVE.autoApplyVariants = autoApplyValue;
                                     ConfigHelper.write(ConfigHelper.ACTIVE);
-                                    client.setScreen(parent);
+                                    client.gui.setScreen(parent);
                                 })
                         .bounds(width / 2 - 100, height - 27, 200, 20)
                         .build());

@@ -4,6 +4,10 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.SubmitNodeStorage;
+import net.minecraft.client.renderer.feature.CustomFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -76,9 +80,6 @@ public final class GizmoRenderer {
         return axisLocalLen[axis];
     }
 
-    private static final Matrix4f GHOST_POSE = new Matrix4f();
-    private static boolean ghostPending;
-
     private static final java.util.Map<net.minecraft.resources.Identifier, Vector3f> BOUNDS_CENTER =
         new java.util.HashMap<>();
 
@@ -116,34 +117,6 @@ public final class GizmoRenderer {
         return new Vector3f(0.5f, 0.5f, 0.5f);
     }
 
-    public static void drawPendingGhost() {
-        if (!ghostPending) {
-            return;
-        }
-        ghostPending = false;
-        com.mojang.blaze3d.vertex.BufferBuilder builder = com.mojang.blaze3d.vertex.Tesselator.getInstance()
-            .begin(GizmoGhostType.GHOST_LINES_TYPE.mode(), GizmoGhostType.GHOST_LINES_TYPE.format());
-        if (builder == null) {
-            return;
-        }
-        PoseStack.Pose pose = new PoseStack.Pose();
-        pose.pose().set(GHOST_POSE);
-        pose.normal().set(new org.joml.Matrix3f(GHOST_POSE));
-        if (isRotateMode()) {
-            drawRings(builder, pose, GHOST_ALPHA);
-        } else {
-            drawAxes(builder, pose, GHOST_ALPHA);
-        }
-        if (VRAbstraction.isActive()) {
-            drawGrabCube(builder, pose, GHOST_ALPHA);
-        }
-        com.mojang.blaze3d.vertex.MeshData mesh = builder.build();
-        if (mesh != null) {
-            GizmoGhostType.GHOST_LINES_TYPE.draw(mesh);
-            mesh.close();
-        }
-    }
-
     public static void setHoveredAxis(int axis) {
         hoveredAxis = axis;
     }
@@ -164,7 +137,8 @@ public final class GizmoRenderer {
         return EditorController.SNAP_STEP_DEGREES;
     }
 
-    public static void renderHandGizmo(ItemStack stack, ItemDisplayContext renderCtx, PoseStack poseStack) {
+    public static void renderHandGizmo(ItemStack stack, ItemDisplayContext renderCtx, PoseStack poseStack,
+                                        SubmitNodeCollector collector) {
         if (!EditorController.isSessionOpen()) {
             hasGizmo = false;
             return;
@@ -185,7 +159,6 @@ public final class GizmoRenderer {
             }
         }
 
-        Minecraft mc = Minecraft.getInstance();
         net.minecraft.client.resources.model.cuboid.ItemTransform working = EditorController.working();
 
         poseStack.pushPose();
@@ -199,19 +172,13 @@ public final class GizmoRenderer {
         poseStack.translate(anchor.x, anchor.y, anchor.z);
 
         LAST_GIZMO_MATRIX.set(poseStack.last().pose());
-        LAST_MV.set(RenderSystem.getModelViewMatrix());
+        LAST_MV.set(RenderSystem.getModelViewMatrixCopy());
         hasGizmo = true;
         updateAxisLengthsVR();
 
-        VertexConsumer consumer = mc.renderBuffers().bufferSource().getBuffer(RenderTypes.lines());
-        if (isRotateMode()) {
-            drawRings(consumer, poseStack.last(), 1.0f);
-        } else {
-            drawAxes(consumer, poseStack.last(), 1.0f);
-        }
-        if (VRAbstraction.isActive()) {
-            drawGrabCube(consumer, poseStack.last(), 1.0f);
-        }
+        submitGizmoLines(collector, poseStack, RenderTypes.lines(), 1.0f);
+        submitGizmoLines(collector, poseStack, GizmoGhostType.GHOST_LINES_TYPE, GHOST_ALPHA);
+
         if (VRAbstraction.isActive()) {
             if (VRDebug.gate("gizmo")) {
                 Vector3f origin = worldMatrix().transformPosition(new Vector3f(0, 0, 0));
@@ -221,14 +188,28 @@ public final class GizmoRenderer {
             }
         }
 
-        mc.renderBuffers().bufferSource().endLastBatch();
-
-        GHOST_POSE.set(poseStack.last().pose());
-        ghostPending = true;
-
         poseStack.popPose();
 
         VRAbstraction.pollVrGizmo(VR_SINK);
+    }
+
+    private static void submitGizmoLines(SubmitNodeCollector collector, PoseStack poseStack,
+                                         RenderType type, float alphaMul) {
+        if (!(collector instanceof SubmitNodeStorage storage)) {
+            return;
+        }
+        storage.order(0).afterTerrain.submit(new CustomFeatureRenderer.Submit(
+            poseStack.last().copy(), type,
+            (pose, buffer) -> {
+                if (isRotateMode()) {
+                    drawRings(buffer, pose, alphaMul);
+                } else {
+                    drawAxes(buffer, pose, alphaMul);
+                }
+                if (VRAbstraction.isActive()) {
+                    drawGrabCube(buffer, pose, alphaMul);
+                }
+            }));
     }
 
     private static void drawAxes(VertexConsumer consumer, PoseStack.Pose pose, float alphaMul) {
@@ -400,7 +381,7 @@ public final class GizmoRenderer {
         }
         Matrix4f world = new Matrix4f();
         Minecraft mc = Minecraft.getInstance();
-        net.minecraft.client.Camera cam = mc.gameRenderer.getMainCamera();
+        net.minecraft.client.Camera cam = mc.gameRenderer.mainCamera();
         world.translate(new Vector3f(cam.position().toVector3f()));
         world.rotate(new org.joml.Quaternionf(cam.rotation()));
         world.mul(LAST_GIZMO_MATRIX);
@@ -466,7 +447,7 @@ public final class GizmoRenderer {
 
     private static org.joml.Vector4f gizmoClipSpace(Vector3f localPoint, double aspect) {
         Minecraft mc = Minecraft.getInstance();
-        float fov = mc.gameRenderer.getMainCamera().getFov();
+        float fov = mc.gameRenderer.mainCamera().getFov();
         Matrix4f proj = new Matrix4f().perspective((float) Math.toRadians(fov), (float) aspect, 0.05f, 100.0f);
         Vector3f local = LAST_GIZMO_MATRIX.transformPosition(new Vector3f(localPoint));
         return proj.transform(LAST_MV.transform(

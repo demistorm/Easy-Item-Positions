@@ -224,8 +224,8 @@ public class EditorScreen extends Screen {
         }
 
         if (VRAbstraction.isActive() && VRDebug.gate("screen")) {
-            String mcScreen = Minecraft.getInstance().screen == null
-                ? "null" : Minecraft.getInstance().screen.getClass().getSimpleName();
+            String mcScreen = Minecraft.getInstance().gui.screen() == null
+                ? "null" : Minecraft.getInstance().gui.screen().getClass().getSimpleName();
             VRDebug.log("screen",
                 "w/h=", this.width + "x" + this.height, "compact=", compact, "panelX=", panelX,
                 "children=", this.children().size(), "mc.screen=", mcScreen);

@@ -16,7 +16,7 @@ public final class Commands {
         Minecraft mc = Minecraft.getInstance();
         mc.execute(() -> {
             if (EditorController.openSession()) {
-                mc.setScreen(new EditorScreen());
+                mc.gui.setScreen(new EditorScreen());
             } else if (mc.player != null) {
                 mc.player.sendOverlayMessage(Component.literal("Hold an item to edit its position"));
             }

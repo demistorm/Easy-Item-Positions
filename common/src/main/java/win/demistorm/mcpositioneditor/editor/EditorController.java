@@ -446,7 +446,7 @@ public final class EditorController {
         vrPreview = false;
         VRAbstraction.resetVrInteraction();
         GizmoRenderer.setHoveredAxis(-1);
-        if (mc.screen instanceof EditorScreen panel) {
+        if (mc.gui.screen() instanceof EditorScreen panel) {
             panel.resize(panel.width, panel.height);
         }
     }

@@ -15,7 +15,7 @@ public abstract class InteractiveHotbarModuleMixin {
 
     @ModifyExpressionValue(
         method = {"isActive", "renderDebug"},
-        at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;screen:Lnet/minecraft/client/gui/screens/Screen;")
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;screen()Lnet/minecraft/client/gui/screens/Screen;")
     )
     private Screen mcpositioneditor$hotbarDuringEditor(Screen original) {
         if (original instanceof EditorScreen) {

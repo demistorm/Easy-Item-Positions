@@ -1,49 +1,51 @@
 package win.demistorm.mcpositioneditor.mixin.vivecraft;
 
-import net.minecraft.client.Minecraft;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.Hud;
 import net.minecraft.client.gui.screens.Screen;
+import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import win.demistorm.mcpositioneditor.editor.EditorScreen;
 import win.demistorm.mcpositioneditor.client.VRAbstraction;
 import win.demistorm.mcpositioneditor.client.VRDebug;
+import win.demistorm.mcpositioneditor.editor.EditorScreen;
 
-// Vivecraft cancels the HUD hotbar while a screen is open, so null mc.screen just around Gui.render (it renders later)
+// Vivecraft cancels the HUD hotbar while a screen is open so hide the screen field only around the hotbar extract
 @Mixin(Gui.class)
 public abstract class GuiVRHotbarMixin {
 
-    @Unique
-    private static Screen mcpositioneditor$savedScreen;
-    @Unique
-    private static boolean mcpositioneditor$window;
+    @Shadow
+    @Nullable
+    private Screen screen;
 
     @Unique
     private static boolean mcpositioneditor$fired;
 
-    @Inject(method = "render", at = @At("HEAD"))
-    private void mcpositioneditor$showHudDuringEditor(CallbackInfo ci) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.screen instanceof EditorScreen && VRAbstraction.isActive()) {
-            mcpositioneditor$savedScreen = mc.screen;
-            mcpositioneditor$window = true;
-            mc.screen = null;
-            if (!mcpositioneditor$fired) {
-                mcpositioneditor$fired = true;
-                VRDebug.log("vr-hotbar-vis", "HUD hotbar rendering during editor session");
+    // Restore in a finally, the screen extract a few lines further down needs the real field back
+    @WrapOperation(method = "extractRenderState(Lnet/minecraft/client/DeltaTracker;ZZ)V", at = @At(value = "INVOKE",
+        target = "Lnet/minecraft/client/gui/Hud;extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V"))
+    private void mcpositioneditor$showHudDuringEditor(Hud hud, GuiGraphicsExtractor graphics, DeltaTracker deltaTracker,
+                                                      Operation<Void> original) {
+        if (screen instanceof EditorScreen && VRAbstraction.isActive()) {
+            Screen saved = screen;
+            screen = null;
+            try {
+                if (!mcpositioneditor$fired) {
+                    mcpositioneditor$fired = true;
+                    VRDebug.log("vr-hotbar-vis", "HUD hotbar rendering during editor session");
+                }
+                original.call(hud, graphics, deltaTracker);
+            } finally {
+                screen = saved;
             }
-        }
-    }
-
-    @Inject(method = "render", at = @At("TAIL"))
-    private void mcpositioneditor$restoreHudAfterEditor(CallbackInfo ci) {
-        if (mcpositioneditor$window) {
-            Minecraft.getInstance().screen = mcpositioneditor$savedScreen;
-            mcpositioneditor$window = false;
-            mcpositioneditor$savedScreen = null;
+        } else {
+            original.call(hud, graphics, deltaTracker);
         }
     }
 }

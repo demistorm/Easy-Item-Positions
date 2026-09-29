@@ -12,7 +12,6 @@
     "MinecraftMixin",
     "ModelManagerMixin",
     "ModelRenderPropertiesMixin",
-    "MultiBufferSourceMixin",
     "RenderPipelinesAccessor",
     "RenderTypeAccessor",
     "SpecialModelWrapperMixin",

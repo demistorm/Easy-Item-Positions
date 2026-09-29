@@ -1,13 +1,13 @@
 package win.demistorm.mcpositioneditor.editor;
 
+import com.mojang.blaze3d.PrimitiveTopology;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.CompareOp;
-import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.renderer.rendertype.OutputTarget;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -18,15 +18,15 @@ import win.demistorm.mcpositioneditor.mixin.RenderTypeAccessor;
 public final class GizmoGhostType {
 
     private static final RenderPipeline GHOST_LINES = RenderPipeline.builder()
-        .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
-        .withUniform("Projection", UniformType.UNIFORM_BUFFER)
-        .withUniform("Fog", UniformType.UNIFORM_BUFFER)
-        .withUniform("Globals", UniformType.UNIFORM_BUFFER)
+        .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
+        .withBindGroupLayout(BindGroupLayouts.FOG)
+        .withBindGroupLayout(BindGroupLayouts.GLOBALS)
         .withVertexShader("core/rendertype_lines")
         .withFragmentShader("core/rendertype_lines")
         .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
         .withCull(false)
-        .withVertexFormat(DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH, VertexFormat.Mode.LINES)
+        .withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR_NORMAL_LINE_WIDTH)
+        .withPrimitiveTopology(PrimitiveTopology.LINES)
         .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false, 0.0f, 0.0f))
         .withLocation(Identifier.fromNamespaceAndPath("mcpositioneditor", "pipeline/gizmo_ghost_lines"))
         .build();

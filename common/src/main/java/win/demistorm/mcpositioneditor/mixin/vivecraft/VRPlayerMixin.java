@@ -14,7 +14,7 @@ public abstract class VRPlayerMixin {
 
     @Inject(method = "preRender", at = @At("TAIL"))
     private void mcpositioneditor$keepRealHandsInEditor(float partialTick, CallbackInfo ci) {
-        if (Minecraft.getInstance().screen instanceof EditorScreen) {
+        if (Minecraft.getInstance().gui.screen() instanceof EditorScreen) {
             ClientDataHolderVR dh = ClientDataHolderVR.getInstance();
             dh.menuHandMain = false;
             dh.menuHandOff = false;
