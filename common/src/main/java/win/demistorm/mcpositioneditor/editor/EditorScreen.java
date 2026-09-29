@@ -1,5 +1,6 @@
 package win.demistorm.mcpositioneditor.editor;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -406,14 +407,14 @@ public class EditorScreen extends Screen {
             }
         }
         int key = keyEvent.input();
-        if (key == 32 && !hasFocusedEditBox && EditorController.isVrPreviewActive()) {
+        if (key == InputConstants.KEY_SPACE && !hasFocusedEditBox) {
             return true;
         }
         int digit = -1;
-        if (key >= 49 && key <= 57) {
-            digit = key - 48;
-        } else if (key >= 321 && key <= 329) {
-            digit = key - 320;
+        if (key >= InputConstants.KEY_1 && key <= InputConstants.KEY_9) {
+            digit = key - InputConstants.KEY_1 + 1;
+        } else if (key >= InputConstants.KEY_NUMPAD1 && key <= InputConstants.KEY_NUMPAD9) {
+            digit = key - InputConstants.KEY_NUMPAD1 + 1;
         }
         if (digit > 0 && !hasFocusedEditBox) {
             Minecraft mc = Minecraft.getInstance();
@@ -427,7 +428,7 @@ public class EditorScreen extends Screen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (event.button() == 0 && GizmoInput.mouseClicked()) {
+        if (event.button() == 1 && GizmoInput.mouseClicked()) {
             return true;
         }
         return super.mouseClicked(event, doubleClick);

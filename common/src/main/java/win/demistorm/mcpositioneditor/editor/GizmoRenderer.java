@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.SubmitNodeCollection;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.CustomFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -195,10 +196,16 @@ public final class GizmoRenderer {
 
     private static void submitGizmoLines(SubmitNodeCollector collector, PoseStack poseStack,
                                          RenderType type, float alphaMul) {
-        if (!(collector instanceof SubmitNodeStorage storage)) {
+        SubmitNodeCollection collection;
+        if (collector instanceof FixedOrderCollector fixed) {
+            collection = fixed.collection();
+        } else if (collector instanceof SubmitNodeStorage storage) {
+            collection = storage.order(FixedOrderCollector.nextOrder(storage));
+        } else {
             return;
         }
-        storage.order(0).afterTerrain.submit(new CustomFeatureRenderer.Submit(
+        // afterTerrain draws after the VR UI, the level storage never draws its on-top bucket
+        collection.afterTerrain.submit(new CustomFeatureRenderer.Submit(
             poseStack.last().copy(), type,
             (pose, buffer) -> {
                 if (isRotateMode()) {

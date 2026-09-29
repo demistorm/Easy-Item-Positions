@@ -1,16 +1,19 @@
 package win.demistorm.mcpositioneditor.client;
 
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.renderer.ItemInHandRenderer;
+import net.minecraft.client.renderer.FirstPersonHandsAndItemsRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.state.level.FirstPersonHandsAndItemsRenderState;
+import net.minecraft.client.renderer.state.level.PlayerRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.PlayerModelType;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -23,6 +26,7 @@ import org.vivecraft.client_vr.render.VRShaders;
 import org.vivecraft.client_vr.render.VivecraftItemRendering;
 import org.vivecraft.client_vr.render.VivecraftItemRendering.VivecraftItemTransformType;
 import win.demistorm.mcpositioneditor.ConfigHelper;
+import win.demistorm.mcpositioneditor.editor.GizmoRenderer;
 
 // Renders the Vivecraft arm and item at a synthetic controller pose (VR context option)
 public final class VRPreviewRenderer {
@@ -46,11 +50,11 @@ public final class VRPreviewRenderer {
         return HAND_ROT;
     }
 
-    public static void renderHand(ItemInHandRenderer renderer, AbstractClientPlayer player,
-                                  ItemStack stack, PoseStack poseStack, SubmitNodeCollector collector,
-                                  int light) {
+    public static void renderHand(FirstPersonHandsAndItemsRenderer renderer, PlayerRenderState playerState,
+                                  FirstPersonHandsAndItemsRenderState handState, ItemStack stack,
+                                  PoseStack poseStack, SubmitNodeCollector collector, int light) {
         Minecraft mc = Minecraft.getInstance();
-        boolean rightHand = armSide(player);
+        boolean rightHand = armSide(playerState);
 
         // Vivecraft's arm type swaps in its own projection uniform (never allocated on desktop)
         GpuBufferSlice projection = RenderSystem.getProjectionMatrixBuffer();
@@ -65,16 +69,16 @@ public final class VRPreviewRenderer {
         dir.y = 0;
         dir.normalize();
         poseStack.translate(dir.x * FWD_OFFSET, -DOWN_OFFSET, dir.z * FWD_OFFSET);
-        poseStack.mulPose(new Quaternionf().rotationXYZ(
+        poseStack.rotate(new Quaternionf().rotationXYZ(
             Mth.DEG_TO_RAD * (GRIP_PITCH - BEND_G + HAND_ROT.x),
             Mth.DEG_TO_RAD * ((rightHand ? STANCE_YAW : -STANCE_YAW) + HAND_ROT.y),
             Mth.DEG_TO_RAD * HAND_ROT.z));
 
-        renderArm(mc, player, rightHand, poseStack, collector, light);
+        renderArm(mc, playerState, rightHand, poseStack, collector, light);
 
         if (!stack.isEmpty()) {
             poseStack.pushPose();
-            VivecraftItemTransformType type = VivecraftItemRendering.getTransformType(stack, player);
+            VivecraftItemTransformType type = VivecraftItemRendering.getTransformType(stack, mc.player);
             if (type == VivecraftItemTransformType.BOW_ROOMSCALE
                 || type == VivecraftItemTransformType.BOW_ROOMSCALE_DRAWING) {
                 type = VivecraftItemTransformType.BOW_SEATED;
@@ -82,21 +86,23 @@ public final class VRPreviewRenderer {
             VRPreviewState.setGunAngleOverride(BEND_G);
             try {
                 VivecraftItemRendering.applyFirstPersonItemTransforms(
-                    poseStack, type, true, player, 1.0f, 0.0f, stack, InteractionHand.MAIN_HAND);
+                    poseStack, type, true, playerState, 1.0f, 0.0f, stack, InteractionHand.MAIN_HAND);
             } finally {
                 VRPreviewState.setGunAngleOverride(null);
             }
-            // Vivecraft renders first-person items with the right-hand context for both hands (as of 1.3.15)
-            renderer.renderItem(player, stack, ItemDisplayContext.FIRST_PERSON_RIGHT_HAND,
-                poseStack, collector, light);
+            // The held item comes from the pre-extracted hand state now, the gizmo follows it manually
+            handState.mainHandRenderState.submit(poseStack, collector, light, OverlayTexture.NO_OVERLAY, 0);
+            GizmoRenderer.renderHandGizmo(stack, ItemDisplayContext.FIRST_PERSON_RIGHT_HAND,
+                poseStack, collector);
             poseStack.popPose();
         }
 
         poseStack.popPose();
     }
 
-    private static boolean armSide(AbstractClientPlayer player) {
-        boolean right = player.getMainArm() == net.minecraft.world.entity.HumanoidArm.RIGHT;
+    private static boolean armSide(PlayerRenderState playerState) {
+        boolean right = playerState.avatarRenderState == null
+            || playerState.avatarRenderState.mainArm == HumanoidArm.RIGHT;
         try {
             if (ClientDataHolderVR.getInstance().vrSettings.reverseHands) {
                 right = !right;
@@ -106,22 +112,25 @@ public final class VRPreviewRenderer {
         return right;
     }
 
-    private static void renderArm(Minecraft mc, AbstractClientPlayer player, boolean rightHand,
+    private static void renderArm(Minecraft mc, PlayerRenderState playerState, boolean rightHand,
                                   PoseStack poseStack, SubmitNodeCollector collector, int light) {
+        if (playerState.avatarRenderState == null) {
+            return;
+        }
         VRArmRenderer arm = ((EntityRenderDispatcherVRExtension) mc.getEntityRenderDispatcher())
-            .vivecraft$getArmSkinMap().get(player.getSkin().model());
+            .vivecraft$getArmSkinMap().get(playerState.avatarRenderState.skin.model());
         if (arm == null) {
             return;
         }
-        boolean slim = player.getSkin().model() == PlayerModelType.SLIM;
+        boolean slim = playerState.avatarRenderState.skin.model() == PlayerModelType.SLIM;
         float side = rightHand ? -1.0f : 1.0f;
         poseStack.pushPose();
         poseStack.scale(0.4f, 0.4f, 0.4f);
         poseStack.translate(side * (slim ? 0.34375f : 0.375f), 0.0f, 0.75f);
-        poseStack.mulPose(Axis.XP.rotationDegrees(-90));
-        poseStack.mulPose(Axis.YP.rotationDegrees(180));
+        poseStack.rotate(Axis.XP.rotationDegrees(-90));
+        poseStack.rotate(Axis.YP.rotationDegrees(180));
         arm.armAlpha = 1.0f;
-        Identifier skin = player.getSkin().body().texturePath();
+        Identifier skin = playerState.avatarRenderState.skin.body().texturePath();
         if (rightHand) {
             arm.renderRightHand(poseStack, collector, light, skin, true);
         } else {

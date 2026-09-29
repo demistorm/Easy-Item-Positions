@@ -31,7 +31,7 @@ public abstract class BlockModelWrapperMixin {
         EditorRenderContext.beginModel(id, itemStack, itemDisplayContext);
         if (EditorController.isSessionOpen()) {
             BlockModelWrapperAccessor self = (BlockModelWrapperAccessor) (Object) this;
-            GizmoRenderer.noteModelQuads(id, self.mcpositioneditor$quads().getAll(),
+            GizmoRenderer.noteModelQuads(id, self.mcpositioneditor$itemQuads().all(),
                 self.mcpositioneditor$transformation());
         }
     }

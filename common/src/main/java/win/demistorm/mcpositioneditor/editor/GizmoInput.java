@@ -1,7 +1,7 @@
 package win.demistorm.mcpositioneditor.editor;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
-import org.lwjgl.glfw.GLFW;
 import win.demistorm.mcpositioneditor.client.VRAbstraction;
 
 // Flatscreen gizmo interaction
@@ -198,7 +198,7 @@ public final class GizmoInput {
         Minecraft mc = Minecraft.getInstance();
         boolean active = mc.isWindowActive();
         if (!active) {
-            // When unfocused, GLFW keeps serving the last key state (why seenUp is needed)
+            // When unfocused, SDL keeps serving the last key state (why seenUp is needed)
             seenUp.clear();
             wasWindowActive = false;
             return;
@@ -210,9 +210,9 @@ public final class GizmoInput {
         if (!EditorController.isSessionOpen() || EditorScreen.hasFocusedEditBox()) {
             return;
         }
-        boolean shift = safeDown(GLFW.GLFW_KEY_LEFT_SHIFT) || safeDown(GLFW.GLFW_KEY_RIGHT_SHIFT);
-        boolean ctrl = safeDown(GLFW.GLFW_KEY_LEFT_CONTROL) || safeDown(GLFW.GLFW_KEY_RIGHT_CONTROL);
-        boolean space = safeDown(GLFW.GLFW_KEY_SPACE);
+        boolean shift = safeDown(InputConstants.KEY_LSHIFT) || safeDown(InputConstants.KEY_RSHIFT);
+        boolean ctrl = safeDown(InputConstants.KEY_LCONTROL) || safeDown(InputConstants.KEY_RCONTROL);
+        boolean space = safeDown(InputConstants.KEY_SPACE);
         float mult = shift ? 0.2f : ctrl ? 3.0f : 1.0f;
         double dt = Math.min(dtSeconds, 0.1);
 
@@ -229,12 +229,12 @@ public final class GizmoInput {
             lastSpaceDown = space;
         }
 
-        boolean w = safeDown(GLFW.GLFW_KEY_W);
-        boolean s = safeDown(GLFW.GLFW_KEY_S);
-        boolean a = safeDown(GLFW.GLFW_KEY_A);
-        boolean d = safeDown(GLFW.GLFW_KEY_D);
-        boolean q = safeDown(GLFW.GLFW_KEY_Q);
-        boolean e = safeDown(GLFW.GLFW_KEY_E);
+        boolean w = safeDown(InputConstants.KEY_W);
+        boolean s = safeDown(InputConstants.KEY_S);
+        boolean a = safeDown(InputConstants.KEY_A);
+        boolean d = safeDown(InputConstants.KEY_D);
+        boolean q = safeDown(InputConstants.KEY_Q);
+        boolean e = safeDown(InputConstants.KEY_E);
 
         if (!(w || s || a || d || q || e)) {
             return;
@@ -273,12 +273,7 @@ public final class GizmoInput {
     }
 
     private static boolean rawDown(int key) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.getWindow() == null) {
-            return false;
-        }
-        long handle = mc.getWindow().handle();
-        return key != -1 && GLFW.glfwGetKey(handle, key) != 0;
+        return key != -1 && InputConstants.isKeyDown(key);
     }
 
     private record Vector2(double x, double y) {}

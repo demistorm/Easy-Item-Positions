@@ -122,14 +122,15 @@ public final class VRAbstraction {
         return VRPreviewRenderer.handRot();
     }
 
-    public static void renderPreviewHand(net.minecraft.client.renderer.ItemInHandRenderer renderer,
-                                         net.minecraft.client.player.AbstractClientPlayer player,
+    public static void renderPreviewHand(net.minecraft.client.renderer.FirstPersonHandsAndItemsRenderer renderer,
+                                         net.minecraft.client.renderer.state.level.PlayerRenderState playerState,
+                                         net.minecraft.client.renderer.state.level.FirstPersonHandsAndItemsRenderState handState,
                                          net.minecraft.world.item.ItemStack stack,
                                          com.mojang.blaze3d.vertex.PoseStack poseStack,
                                          net.minecraft.client.renderer.SubmitNodeCollector collector,
                                          int light) {
         try {
-            VRPreviewRenderer.renderHand(renderer, player, stack, poseStack, collector, light);
+            VRPreviewRenderer.renderHand(renderer, playerState, handState, stack, poseStack, collector, light);
         } catch (Throwable t) {
             previewBroken = true;
             log.error("VR preview hand rendering failed, disabling for this session", t);
