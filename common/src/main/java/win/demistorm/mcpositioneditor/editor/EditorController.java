@@ -101,9 +101,8 @@ public final class EditorController {
         transAccumValid = false;
         if (VRAbstraction.isAvailable()) {
             Vector3f rot = VRAbstraction.previewHandRot();
-            ConfigHelper.ACTIVE.previewHandRot =
+            ConfigHelper.ACTIVE.vrPreviewHandRot =
                 new float[]{rot.x, rot.y, rot.z};
-            ConfigHelper.write(ConfigHelper.ACTIVE);
         }
         OverrideStorage.flush();
     }
