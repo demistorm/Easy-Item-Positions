@@ -5,14 +5,13 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.cuboid.ItemTransform;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.joml.Vector3f;
+import win.demistorm.mcpositioneditor.ConfigHelper;
 
-import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,7 +19,7 @@ import java.util.Map;
 
 import static win.demistorm.mcpositioneditor.MCPositionEditor.log;
 
-// Persists saved overrides to config/easyitempositions.json (survives restarts so not everything has to be exported to resourcepacks))
+// Persists saved overrides and editor settings to config/easyitempositions.json so they survive restarts
 public final class OverrideStorage {
 
     private OverrideStorage() {}
@@ -32,11 +31,6 @@ public final class OverrideStorage {
     private static boolean dirty;
     private static long lastFlushMs;
     private static boolean suppressDirty;
-
-    private static Path configFile() {
-        File configDir = new File(Minecraft.getInstance().gameDirectory, "config");
-        return configDir.toPath().resolve("easyitempositions.json");
-    }
 
     public static void markDirty() {
         if (!suppressDirty) {
@@ -54,10 +48,11 @@ public final class OverrideStorage {
     public static void flush() {
         ensureLoaded();
         try {
-            Path file = configFile();
+            Path file = ConfigHelper.FILE;
             Files.createDirectories(file.getParent());
             JsonObject root = new JsonObject();
-            root.addProperty("version", 1);
+            root.addProperty("version", 2);
+            root.add("settings", GSON.toJsonTree(ConfigHelper.ACTIVE));
             JsonObject models = new JsonObject();
             for (Map.Entry<Identifier, Map<ItemDisplayContext, ItemTransform>> e
                 : TransformOverrideManager.overrides().entrySet()) {
@@ -80,18 +75,12 @@ public final class OverrideStorage {
         if (loaded) {
             return;
         }
-        Path file;
-        try {
-            file = configFile();
-        } catch (Throwable t) {
-            return;
-        }
         loaded = true;
-        if (!Files.exists(file)) {
+        if (!Files.exists(ConfigHelper.FILE)) {
             return;
         }
         try {
-            JsonElement element = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8));
+            JsonElement element = JsonParser.parseString(Files.readString(ConfigHelper.FILE, StandardCharsets.UTF_8));
             if (!element.isJsonObject()) {
                 return;
             }
