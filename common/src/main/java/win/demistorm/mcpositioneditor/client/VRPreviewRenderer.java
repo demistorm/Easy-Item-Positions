@@ -34,9 +34,9 @@ public final class VRPreviewRenderer {
     private VRPreviewRenderer() {}
 
     public static final Vector3f HAND_ROT = new Vector3f(
-        ConfigHelper.ACTIVE.previewHandRot.length == 3 ? ConfigHelper.ACTIVE.previewHandRot[0] : 0.0f,
-        ConfigHelper.ACTIVE.previewHandRot.length == 3 ? ConfigHelper.ACTIVE.previewHandRot[1] : 0.0f,
-        ConfigHelper.ACTIVE.previewHandRot.length == 3 ? ConfigHelper.ACTIVE.previewHandRot[2] : 0.0f);
+        ConfigHelper.ACTIVE.vrPreviewHandRot.length == 3 ? ConfigHelper.ACTIVE.vrPreviewHandRot[0] : 0.0f,
+        ConfigHelper.ACTIVE.vrPreviewHandRot.length == 3 ? ConfigHelper.ACTIVE.vrPreviewHandRot[1] : 0.0f,
+        ConfigHelper.ACTIVE.vrPreviewHandRot.length == 3 ? ConfigHelper.ACTIVE.vrPreviewHandRot[2] : 0.0f);
 
     // Quest 2/Pro/Plus controller poses (offsets pulled from NullVR.deviceOffsets) (should translate to other controllers pretty close)
     private static final float BEND_G = 37.4f;

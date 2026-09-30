@@ -68,7 +68,7 @@ public final class ConfigScreen extends Screen {
                                 btn -> {
                                     ConfigHelper.ACTIVE.boundsCenteredGizmos = boundsCenteredValue;
                                     ConfigHelper.ACTIVE.autoApplyVariants = autoApplyValue;
-                                    ConfigHelper.write(ConfigHelper.ACTIVE);
+                                    ConfigHelper.write();
                                     client.gui.setScreen(parent);
                                 })
                         .bounds(width / 2 - 100, height - 27, 200, 20)
